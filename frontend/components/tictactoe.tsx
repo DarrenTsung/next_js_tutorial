@@ -1,19 +1,32 @@
-import React from 'react'
+import React, { FunctionComponent } from 'react'
 import styles from './tictactoe.module.css'
 
-class Square extends React.Component {
+type SquareProps = {
+    value: number
+}
+
+type SquareState = {
+    value?: string
+}
+
+class Square extends React.Component<SquareProps, SquareState> {
+    constructor(props: SquareProps) {
+        super(props);
+        this.state = {
+            value: null
+        };
+    }
+
     render() {
-        return (
-            <button className={styles.square}>
-                {/* TODO */}
-            </button>
-        );
+        return <button className={styles.square} onClick={() => this.setState({ value: 'X' })}>
+            {this.state.value}
+        </button>
     }
 }
 
 class Board extends React.Component {
-    renderSquare(i) {
-        return <Square />;
+    renderSquare(i: number) {
+        return <Square value={i} />;
     }
 
     render() {
