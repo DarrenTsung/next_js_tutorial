@@ -2,31 +2,35 @@ import React, { FunctionComponent } from 'react'
 import styles from './tictactoe.module.css'
 
 type SquareProps = {
-    value: number
-}
-
-type SquareState = {
     value?: string
+    onClick: (e: React.MouseEvent) => void,
 }
 
-class Square extends React.Component<SquareProps, SquareState> {
-    constructor(props: SquareProps) {
+const Square: FunctionComponent<SquareProps> = ({ value, onClick }) =>
+    <button className={styles.square} onClick={onClick}>
+        {value}
+    </button>
+
+type BoardState = {
+    squares: Array<string>,
+}
+
+class Board extends React.Component<{}, BoardState> {
+    constructor(props: {}) {
         super(props);
         this.state = {
-            value: null
+            squares: Array(9).fill(null),
         };
     }
 
-    render() {
-        return <button className={styles.square} onClick={() => this.setState({ value: 'X' })}>
-            {this.state.value}
-        </button>
+    handleClick(i: number) {
+        const squares = this.state.squares.slice();
+        squares[i] = 'X';
+        this.setState({ squares: squares });
     }
-}
 
-class Board extends React.Component {
     renderSquare(i: number) {
-        return <Square value={i} />;
+        return <Square value={this.state.squares[i]} onClick={() => this.handleClick(i)} />;
     }
 
     render() {
