@@ -13,6 +13,7 @@ const Square: FunctionComponent<SquareProps> = ({ value, onClick }) =>
 
 type BoardState = {
     squares: Array<string>,
+    xPlayersTurn: boolean,
 }
 
 class Board extends React.Component<{}, BoardState> {
@@ -20,13 +21,17 @@ class Board extends React.Component<{}, BoardState> {
         super(props);
         this.state = {
             squares: Array(9).fill(null),
+            xPlayersTurn: true,
         };
     }
 
     handleClick(i: number) {
         const squares = this.state.squares.slice();
-        squares[i] = 'X';
-        this.setState({ squares: squares });
+        squares[i] = this.state.xPlayersTurn ? 'X' : 'O';
+        this.setState({
+            squares: squares,
+            xPlayersTurn: !this.state.xPlayersTurn
+        });
     }
 
     renderSquare(i: number) {
@@ -34,7 +39,7 @@ class Board extends React.Component<{}, BoardState> {
     }
 
     render() {
-        const status = 'Next player: X';
+        const status = 'Next player: ' + (this.state.xPlayersTurn ? 'X' : 'O');
 
         return (
             <div>
