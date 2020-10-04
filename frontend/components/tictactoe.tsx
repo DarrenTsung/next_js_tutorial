@@ -11,49 +11,19 @@ const Square: FunctionComponent<SquareProps> = ({ value, onClick }) =>
         {value}
     </button>
 
-type BoardState = {
+type BoardProps = {
     squares: Array<string>,
-    xPlayersTurn: boolean,
+    onClick: (i: number) => void,
 }
 
-class Board extends React.Component<{}, BoardState> {
-    constructor(props: {}) {
-        super(props);
-        this.state = {
-            squares: Array(9).fill(null),
-            xPlayersTurn: true,
-        };
-    }
-
-    handleClick(i: number) {
-        if (calculateWinner(this.state.squares) || this.state.squares[i]) {
-            return;
-        }
-
-        const squares = this.state.squares.slice();
-        squares[i] = this.state.xPlayersTurn ? 'X' : 'O';
-        this.setState({
-            squares: squares,
-            xPlayersTurn: !this.state.xPlayersTurn
-        });
-    }
-
+class Board extends React.Component<BoardProps> {
     renderSquare(i: number) {
-        return <Square value={this.state.squares[i]} onClick={() => this.handleClick(i)} />;
+        return <Square value={this.props.squares[i]} onClick={() => this.props.onClick(i)} />;
     }
 
     render() {
-        const winner = calculateWinner(this.state.squares);
-        let status: string;
-        if (winner) {
-            status = 'Winner: ' + winner;
-        } else {
-            status = 'Next player: ' + (this.state.xPlayersTurn ? 'X' : 'O');
-        };
-
         return (
             <div>
-                <div className={styles.status}>{status}</div>
                 <div className={styles.boardRow}>
                     {this.renderSquare(0)}
                     {this.renderSquare(1)}
@@ -74,16 +44,76 @@ class Board extends React.Component<{}, BoardState> {
     }
 }
 
-export class Game extends React.Component {
+type BoardState = {
+    squares: Array<string>,
+}
+
+type GameState = {
+    history: BoardState[],
+    xPlayersTurn: boolean,
+}
+
+export class Game extends React.Component<{}, GameState> {
+    constructor(props: {}) {
+        super(props);
+        this.state = {
+            history: [{ squares: Array(9).fill(null) }],
+            xPlayersTurn: true,
+        }
+    }
+
+    currentBoardState(): BoardState {
+        return this.state.history[this.state.history.length - 1];
+    }
+
+    handleClick(i: number) {
+        const current = this.currentBoardState();
+        if (calculateWinner(current.squares) || current.squares[i]) {
+            return;
+        }
+
+        const nextSquares = current.squares.slice();
+        nextSquares[i] = this.state.xPlayersTurn ? 'X' : 'O';
+        this.setState({
+            history: this.state.history.concat({ squares: nextSquares }),
+            xPlayersTurn: !this.state.xPlayersTurn,
+        });
+    }
+
+    jumpTo(move: number) {
+        this.setState({
+            history: this.state.history.slice(0, move + 1),
+            xPlayersTurn: move % 2 === 0 ? true : false,
+        });
+    }
+
     render() {
+        const current = this.currentBoardState();
+        const winner = calculateWinner(current.squares);
+        let status: string;
+        if (winner) {
+            status = 'Winner: ' + winner;
+        } else {
+            status = 'Next player: ' + (this.state.xPlayersTurn ? 'X' : 'O');
+        };
+
+        const moves = this.state.history.map((step, move) => {
+            const desc = move === 0 ? 'Go to game start' : 'Go to move #' + move;
+            return (
+                <li key={move}>
+                    <button onClick={() => this.jumpTo(move)}>{desc}</button>
+                </li>
+            );
+        })
+
         return (
             <div className={styles.game}>
                 <div className={styles.gameBoard}>
-                    <Board />
+                    <Board squares={current.squares} onClick={(i) => this.handleClick(i)} />
                 </div>
                 <div className={styles.gameInfo}>
-                    <div>{/* status */}</div>
-                    <ol>{/* TODO */}</ol>
+                    <div>{status}</div>
+                    <ol>{moves}</ol>
                 </div>
             </div>
         );
